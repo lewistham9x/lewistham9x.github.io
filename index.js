@@ -68,7 +68,7 @@
       },
       {
         id: "creationDate",
-        dataType: tableau.dataTypeEnum.datetime,
+        dataType: tableau.dataTypeEnum.string,
       },
     ];
 
