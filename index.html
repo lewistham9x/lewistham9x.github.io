@@ -1,0 +1,31 @@
+<script src="/bower_components/es6-promise/es6-promise.min.js"></script>
+<script src="/bower_components/jquery/dist/jquery.min.js"></script>
+<script src="https://connectors.tableau.com/libs/tableauwdc-2.0.0-beta.js"></script>
+<script src="/bower_components/wdcw/dist/wdcw.min.js"></script>
+<script>
+  // Instantiate your WDC and supply custom WDC logic.
+  var wrapper = wdcw({
+    name: "My Web Data Connector",
+    schema: function () {
+      return Promise.resolve([
+        {
+          // Your schema definition here.
+        },
+      ]);
+    },
+  });
+  // The wrapper automatically retrieves and stores form inputs, keyed on their
+  // "name" attribute. You can retrieve them via the getConnectionData method.
+  wrapper.registerData("someTableId", function () {
+    var connector = this,
+      someConfig = connector.getConnectionData("SomeConfig");
+
+    var settings = {
+      url: "https://shieldapi.miim.club/pools/cached",
+      method: "GET",
+      timeout: 0,
+    };
+
+    return $.when($.ajax(settings).done());
+  });
+</script>
