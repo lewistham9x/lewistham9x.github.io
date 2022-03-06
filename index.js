@@ -5,74 +5,85 @@
   // Define the schema
   myConnector.getSchema = function (schemaCallback) {
     // Schema for magnitude and place data
-    var mag_place_cols = [
+    var pool_cols = [
       {
         id: "id",
+        dataType: tableau.dataTypeEnum.int,
+      },
+      {
+        id: "name",
         dataType: tableau.dataTypeEnum.string,
       },
       {
-        id: "mag",
-        alias: "magnitude",
-        dataType: tableau.dataTypeEnum.float,
-      },
-      {
-        id: "title",
-        alias: "title",
+        id: "firstToken",
         dataType: tableau.dataTypeEnum.string,
       },
       {
-        id: "lat",
-        alias: "latitude",
+        id: "secondToken",
+        dataType: tableau.dataTypeEnum.string,
+      },
+      {
+        id: "lpToken",
+        dataType: tableau.dataTypeEnum.string,
+      },
+      {
+        id: "apr",
         dataType: tableau.dataTypeEnum.float,
       },
       {
-        id: "lon",
-        alias: "longitude",
-        dataType: tableau.dataTypeEnum.float,
+        id: "totalStaked",
+        dataType: tableau.dataTypeEnum.int,
+      },
+      {
+        id: "created_at",
+        dataType: tableau.dataTypeEnum.datetime,
+      },
+      {
+        id: "updated_at",
+        dataType: tableau.dataTypeEnum.datetime,
+      },
+      {
+        id: "farm",
+        dataType: tableau.dataTypeEnum.string,
+      },
+      {
+        id: "chainName",
+        dataType: tableau.dataTypeEnum.string,
+      },
+      {
+        id: "nativeToken",
+        dataType: tableau.dataTypeEnum.string,
+      },
+      {
+        id: "masterChef",
+        dataType: tableau.dataTypeEnum.string,
+      },
+      {
+        id: "website",
+        dataType: tableau.dataTypeEnum.string,
+      },
+      {
+        id: "risk",
+        dataType: tableau.dataTypeEnum.string,
+      },
+      {
+        id: "creationDate",
+        dataType: tableau.dataTypeEnum.datetime,
       },
     ];
 
-    var magPlaceTable = {
-      id: "magPlace",
-      alias: "Magnitude and Place Data",
-      columns: mag_place_cols,
+    var poolTable = {
+      id: "pool",
+      alias: "Pool Data",
+      columns: pool_cols,
     };
 
-    // Schema for time and URL data
-    var time_url_cols = [
-      {
-        id: "id",
-        dataType: tableau.dataTypeEnum.string,
-      },
-      {
-        id: "time",
-        alias: "time",
-        dataType: tableau.dataTypeEnum.date,
-      },
-      {
-        id: "url",
-        alias: "url",
-        dataType: tableau.dataTypeEnum.string,
-      },
-    ];
-
-    var timeUrlTable = {
-      id: "timeUrl",
-      alias: "Time and URL Data",
-      columns: time_url_cols,
-    };
-    schemaCallback([magPlaceTable, timeUrlTable]);
+    schemaCallback([poolTable]);
   };
 
   // Download the data
   myConnector.getData = function (table, doneCallback) {
-    var dateObj = JSON.parse(tableau.connectionData),
-      dateString =
-        "starttime=" + dateObj.startDate + "&endtime=" + dateObj.endDate,
-      apiCall =
-        "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&" +
-        dateString +
-        "&minmagnitude=4.5";
+    var apiCall = "https://shieldapi.miim.club/pools/cached";
 
     $.getJSON(apiCall, function (resp) {
       var feat = resp.features,
@@ -80,24 +91,25 @@
 
       var i = 0;
 
-      if (table.tableInfo.id == "magPlace") {
+      if (table.tableInfo.id == "pool") {
         for (i = 0, len = feat.length; i < len; i++) {
           tableData.push({
             id: feat[i].id,
-            mag: feat[i].properties.mag,
-            title: feat[i].properties.title,
-            lon: feat[i].geometry.coordinates[0],
-            lat: feat[i].geometry.coordinates[1],
-          });
-        }
-      }
-
-      if (table.tableInfo.id == "timeUrl") {
-        for (i = 0, len = feat.length; i < len; i++) {
-          tableData.push({
-            id: feat[i].id,
-            url: feat[i].properties.url,
-            time: new Date(feat[i].properties.time), // Convert to a date format from epoch time
+            name: feat[i].properties.name,
+            firstToken: feat[i].properties.firstToken,
+            secondToken: feat[i].properties.secondToken,
+            lpToken: feat[i].properties.lpToken,
+            apr: feat[i].geometry.apr,
+            totalStaked: feat[i].geometry.totalStaked,
+            created_at: feat[i].geometry.created_at,
+            updated_at: feat[i].geometry.updated_at,
+            farm: feat[i].geometry.farm,
+            chainName: feat[i].geometry.chainName,
+            nativeToken: feat[i].geometry.nativeToken,
+            masterChef: feat[i].geometry.masterChef,
+            website: feat[i].geometry.website,
+            risk: feat[i].geometry.risk,
+            creationDate: feat[i].geometry.creationDate,
           });
         }
       }
@@ -112,24 +124,9 @@
   // Create event listeners for when the user submits the form
   $(document).ready(function () {
     $("#submitButton").click(function () {
-      var dateObj = {
-        startDate: $("#start-date-one").val().trim(),
-        endDate: $("#end-date-one").val().trim(),
-      };
-
-      // Simple date validation: Call the getDate function on the date object created
-      function isValidDate(dateStr) {
-        var d = new Date(dateStr);
-        return !isNaN(d.getDate());
-      }
-
-      if (isValidDate(dateObj.startDate) && isValidDate(dateObj.endDate)) {
-        tableau.connectionData = JSON.stringify(dateObj); // Use this variable to pass data to your getSchema and getData functions
-        tableau.connectionName = "USGS Earthquake Feed"; // This will be the data source name in Tableau
-        tableau.submit(); // This sends the connector object to Tableau
-      } else {
-        $("#errorMsg").html("Enter valid dates. For example, 2016-05-08.");
-      }
+      tableau.connectionData = JSON.stringify(dateObj); // Use this variable to pass data to your getSchema and getData functions
+      tableau.connectionName = "Shieldfarm pools data"; // This will be the data source name in Tableau
+      tableau.submit(); // This sends the connector object to Tableau
     });
   });
 })();
